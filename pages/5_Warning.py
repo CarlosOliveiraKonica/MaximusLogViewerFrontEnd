@@ -1,6 +1,6 @@
 import streamlit as st
 
-from Home import StatisticsPage
+from common.page_body import StatisticsPage
 
 statistics_page = StatisticsPage(
     st.session_state.warning_statistics_table_obj,
