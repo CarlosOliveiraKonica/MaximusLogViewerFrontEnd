@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 from common.tables import StatisticsTableInterface, LogLegendTable
 
 
-
 class StatisticsPage:
     def __init__(self, statistics_table: StatisticsTableInterface, log_table: LogLegendTable) -> None:
         self._statistics_table = statistics_table
@@ -24,9 +23,19 @@ class StatisticsPage:
         self._filtered_dataframe = pd.DataFrame()
         self._total_dataframe = pd.DataFrame()
 
+        self._selector_key = 0
+
+
+    def __next_selector_key(self):
+        """Workaround to solve DuplicatedWidgetID exception from Streamlit.
+        This will generate unique IDs for selection widgets based on 'sheet_name'.
+        """
+        self._selector_key += 1
+        return self._statistics_table.get_sheet_name() + str(self._selector_key)
+
 
     def show_log_filter(self) -> None:
-        log_selection = st.multiselect('\nLogs sob análise:', self._log_table.get_logs_names())
+        log_selection = st.multiselect('\nLogs sob análise:', self._log_table.get_logs_names(), key=self.__next_selector_key())
         if log_selection:
             self._selected_logs_names = log_selection
         else:
@@ -52,13 +61,13 @@ class StatisticsPage:
     def show_key_column_multi_select_filter(self) -> None:
         user_message = self.__get_key_column_message()
         rows_list = self.__get_rows_list_from_key_column()
-        self._rows_selected_from_key_column = st.multiselect(user_message, rows_list, rows_list)
+        self._rows_selected_from_key_column = st.multiselect(user_message, rows_list, rows_list, key=self.__next_selector_key())
         self.__add_total_row_to_rows_selected()
 
     def show_key_column_range_select_filter(self) -> None:
         user_message = self.__get_key_column_message()
         rows_list = self.__get_rows_list_from_key_column()
-        min_value, max_value = st.select_slider(user_message, options=rows_list, value=(min(rows_list), max(rows_list)))
+        min_value, max_value = st.select_slider(user_message, options=rows_list, value=(min(rows_list), max(rows_list)), key=self.__next_selector_key())
         self._rows_selected_from_key_column = [value for value in rows_list if value >= min_value and value <= max_value]
         self.__add_total_row_to_rows_selected()
 
@@ -122,7 +131,7 @@ class StatisticsPage:
         # Log sub-selection
         selection_with_total = self._selected_logs_names.copy()
         selection_with_total.append("TOTAL")
-        selection = st.selectbox('\nGráfico de pizza: selecione a fonte de dados:', selection_with_total)
+        selection = st.selectbox('\nGráfico de pizza: selecione a fonte de dados:', selection_with_total, key=self.__next_selector_key())
         if selection != "TOTAL":
             log_selected = self._log_table.get_log_index_by_name(selection)
         else:
