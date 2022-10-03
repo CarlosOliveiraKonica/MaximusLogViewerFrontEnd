@@ -17,7 +17,7 @@ class StatisticsPage:
 
         # Key column filter
         self._key_column = self._statistics_table.get_key_column()
-        self._rows_selected_from_key_column = []
+        self._rows_selected_from_column_dict = {}
 
         # Dataframes
         self._filtered_dataframe = pd.DataFrame()
@@ -44,36 +44,71 @@ class StatisticsPage:
         self._columns_selected_per_logs = self._statistics_table.get_all_columns_including_logs(self._selected_logs_indexes)
 
 
-    def __get_key_column_message(self) -> str:
-        return '\nFiltro de {}:'.format(self._statistics_table.get_sheet_name())
+    def __get_user_message_to_filter(self, column_name: str) -> str:
+        return '\nFiltro de {}:'.format(column_name)
 
-    def __get_rows_list_from_key_column(self) -> list:
-        rows_list = self._statistics_table.get_rows_list_from_column(self._key_column)
+    def __get_rows_list_from_column(self, column_name: str) -> list:
+        rows_list = self._statistics_table.get_rows_list_from_column(column_name, non_duplicated=True, non_nan=True)
         try:
             rows_list.remove("TOTAL")
         except ValueError:
             pass
         return rows_list
 
-    def __add_total_row_to_rows_selected(self) -> None:
-        self._rows_selected_from_key_column.append("TOTAL")
+    def __add_total_row_to_rows_selected_dict(self, column_name: str, rows_selected: list) -> None:
+        rows_selected.append("TOTAL")
+        self._rows_selected_from_column_dict[column_name] = rows_selected
 
     def show_key_column_multi_select_filter(self) -> None:
-        user_message = self.__get_key_column_message()
-        rows_list = self.__get_rows_list_from_key_column()
-        self._rows_selected_from_key_column = st.multiselect(user_message, rows_list, rows_list, key=self.__next_selector_key())
-        self.__add_total_row_to_rows_selected()
+        user_message = self.__get_user_message_to_filter(self._key_column)
+        rows_list = self.__get_rows_list_from_column(self._key_column)
+        rows_selected_from_column = st.multiselect(user_message, rows_list, rows_list, key=self.__next_selector_key())
+        self.__add_total_row_to_rows_selected_dict(self._key_column, rows_selected_from_column)
+
+    def show_column_multi_select_filter(self, column_name: str) -> None:
+        user_message = self.__get_user_message_to_filter(column_name)
+        rows_list = self.__get_rows_list_from_column(column_name)
+        rows_selected_from_column = st.multiselect(user_message, rows_list, rows_list, key=self.__next_selector_key())
+        self.__add_total_row_to_rows_selected_dict(column_name, rows_selected_from_column)
 
     def show_key_column_range_select_filter(self) -> None:
-        user_message = self.__get_key_column_message()
-        rows_list = self.__get_rows_list_from_key_column()
-        min_value, max_value = st.select_slider(user_message, options=rows_list, value=(min(rows_list), max(rows_list)), key=self.__next_selector_key())
-        self._rows_selected_from_key_column = [value for value in rows_list if value >= min_value and value <= max_value]
-        self.__add_total_row_to_rows_selected()
+        user_message = self.__get_user_message_to_filter(self._key_column)
+        rows_list = self.__get_rows_list_from_column(self._key_column)
+        min_value = int(min(rows_list))
+        max_value = int(max(rows_list))
+        range_value = list(range(min_value, max_value+1))
+        min_value, max_value = st.select_slider(user_message, options=range_value, value=(min_value, max_value), key=self.__next_selector_key())
+        rows_selected_from_column = [value for value in rows_list if value >= min_value and value <= max_value]
+        self.__add_total_row_to_rows_selected_dict(self._key_column, rows_selected_from_column)
+
+    def show_column_range_select_filter(self, column_name: str) -> None:
+        user_message = self.__get_user_message_to_filter(column_name)
+        rows_list = self.__get_rows_list_from_column(column_name)
+        min_value = int(min(rows_list))
+        max_value = int(max(rows_list))
+        range_value = list(range(min_value, max_value+1))
+        min_value, max_value = st.select_slider(user_message, options=range_value, value=(min_value, max_value), key=self.__next_selector_key())
+        rows_selected_from_column = [value for value in rows_list if value >= min_value and value <= max_value]
+        self.__add_total_row_to_rows_selected_dict(column_name, rows_selected_from_column)
 
 
     def __remove_total_column(self) -> pd.DataFrame:
         return self._total_dataframe.drop("TOTAL", axis="columns", errors="ignore")
+
+    def __add_total_column(self) -> pd.DataFrame:
+        logs_dataframe = self._total_dataframe[self._selected_logs_indexes]
+        self._total_dataframe.loc[:,["TOTAL"]] = logs_dataframe.sum(numeric_only=True, axis=1)
+        return self._total_dataframe
+
+    def __remove_total_line(self) -> pd.DataFrame:
+        self._total_dataframe = self._total_dataframe.drop(self._total_dataframe[self._total_dataframe[self._key_column] == "TOTAL"].index)
+        return self._total_dataframe
+
+    def __add_total_line(self) -> pd.DataFrame:
+        total_line_dataframe = self.__get_total_line_dataframe()
+        self._total_dataframe = pd.concat([self._total_dataframe, total_line_dataframe], ignore_index=True)
+        self._total_dataframe.fillna("", inplace=True)
+        return self._total_dataframe
 
     def __get_total_line_dataframe(self) -> pd.DataFrame:
         columns_list = self._selected_logs_indexes
@@ -83,18 +118,18 @@ class StatisticsPage:
         data_list.insert(0, "TOTAL")
         return pd.DataFrame(dict(zip(columns_list, data_list)))
 
-    def __add_total_line(self) -> pd.DataFrame:
-        total_line_dataframe = self.__get_total_line_dataframe()
-        self._total_dataframe = pd.concat([self._total_dataframe, total_line_dataframe], ignore_index=True)
-        return self._total_dataframe
 
-    def __remove_total_line(self) -> pd.DataFrame:
-        self._total_dataframe = self._total_dataframe.drop(self._total_dataframe[self._total_dataframe[self._key_column] == "TOTAL"].index)
-        return self._total_dataframe
 
-    def __add_total_column(self) -> pd.DataFrame:
-        self._total_dataframe.loc[:,["TOTAL"]] = self._total_dataframe.sum(numeric_only=True, axis=1)
-        return self._total_dataframe
+    def __get_dataframe_filtered_by_rows_and_columns(
+        self, 
+        dataframe: pd.DataFrame, 
+        col_to_select_rows: str, 
+        rows_list: list, 
+    ) -> pd.DataFrame:
+        if rows_list:
+            return dataframe[dataframe[col_to_select_rows].isin(rows_list)]
+        else:
+            return dataframe
 
     def show_log_and_statistics_table(self) -> None:
         left_col_width = 1
@@ -107,10 +142,14 @@ class StatisticsPage:
             st.write(log_dataframe.astype(str))
         with right_col:
             st.write("\nTabela de quantidade por {}".format(self._statistics_table.get_sheet_name()))
-            self._filtered_dataframe = self._statistics_table.get_dataframe_filtered_by_rows_and_columns(
-                self._key_column, self._rows_selected_from_key_column, self._columns_selected_per_logs
-            )
-            self._total_dataframe = self._filtered_dataframe.copy()
+            filtered_dataframe = self._statistics_table.get_dataframe_filtered_by_columns(self._columns_selected_per_logs)
+            for column, rows_selected in self._rows_selected_from_column_dict.items():
+                filtered_dataframe = self.__get_dataframe_filtered_by_rows_and_columns(
+                    filtered_dataframe,
+                    col_to_select_rows=column,
+                    rows_list=rows_selected,
+                )
+            self._total_dataframe = filtered_dataframe.copy()
             self._total_dataframe = self.__remove_total_column()
             self._total_dataframe = self.__add_total_column()
             self._total_dataframe = self.__remove_total_line()

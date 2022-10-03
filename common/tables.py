@@ -3,7 +3,6 @@ import pandas as pd
 from common.excel_reader import ExcelReader
 
 
-
 class TableInterface:
     def __init__(self, sheet_name: str) -> None:
         self._excel_reader = ExcelReader(sheet_name)
@@ -99,6 +98,7 @@ class StatisticsTableInterface(TableInterface):
 
     def get_all_columns_including_logs(self, logs_columns: list) -> list:
         columns = [self.get_key_column()]
+        columns.extend(self.get_sub_key_columns())
         columns.extend(logs_columns)
         columns.extend([self.get_total_column()])
         return columns
@@ -124,9 +124,18 @@ class StatisticsTableInterface(TableInterface):
         else:
             return dataframe
 
-    def get_rows_list_from_column(self, column: str) -> list:
+    def get_rows_list_from_column(self, column: str, non_duplicated=False, non_nan=False) -> list:
         dataframe = self.get_dataframe()
-        return dataframe[column].to_list()
+        if non_nan:
+            dataframe.dropna(inplace=True)
+        rows_list = dataframe[column].to_list()
+        if non_duplicated:
+            rows_list = list(set(rows_list))
+            try:
+                rows_list.sort()
+            except TypeError:
+                pass
+        return rows_list
 
 
 class mA_Table(StatisticsTableInterface):

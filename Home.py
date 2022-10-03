@@ -16,7 +16,9 @@ if uploaded_file:
     statistics = StatisticsTables()
     statistics.set_file(uploaded_file)
 
-    mA_tab, kV_tab, ms_tab, failure_tab, warning_tab = st.tabs(["mA", "kV", "ms", "Falha", "Warning"])
+    mA_tab, kV_tab, ms_tab, failure_tab, warning_tab, exposition_tab = st.tabs(
+        ["mA", "kV", "ms", "Falha", "Warning", "Exposição"]
+    )
     
     with mA_tab:
         mA_page = StatisticsPage(
@@ -72,3 +74,14 @@ if uploaded_file:
         warning_page.show_log_and_statistics_table()
         warning_page.show_bar_chart()
         warning_page.show_pie_chart()
+
+    with exposition_tab:
+        exposition_page = StatisticsPage(
+            statistics.exposition_table,
+            statistics.log_table,
+        )
+        exposition_page.show_log_filter()
+        exposition_page.show_column_multi_select_filter("mA")
+        exposition_page.show_column_range_select_filter("kV")
+        exposition_page.show_column_range_select_filter("ms")
+        exposition_page.show_log_and_statistics_table()
