@@ -138,7 +138,7 @@ class StatisticsPage:
         with left_col:
             st.write("\nLegenda de logs")
             log_dataframe = self._log_table.get_dataframe()
-            log_dataframe = log_dataframe.filter(items=self._selected_logs_indexes, axis="index")
+            log_dataframe = self._log_table.get_dataframe_filtered_by_logs_indexes(self._selected_logs_indexes)
             st.write(log_dataframe.astype(str))
         with right_col:
             st.write("\nTabela de quantidade por {}".format(self._statistics_table.get_sheet_name()))
