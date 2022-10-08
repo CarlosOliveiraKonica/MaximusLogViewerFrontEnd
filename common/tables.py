@@ -139,7 +139,7 @@ class StatisticsTableInterface(TableInterface):
             dataframe.dropna(inplace=True)
         rows_list = dataframe[column].to_list()
         if non_duplicated:
-            rows_list = list(set(rows_list))
+            rows_list = list(dict.fromkeys(rows_list))
             try:
                 rows_list.sort()
             except TypeError:
