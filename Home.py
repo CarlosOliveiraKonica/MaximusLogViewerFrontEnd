@@ -26,7 +26,9 @@ if uploaded_file:
             statistics.log_table,
         )
         mA_page.show_log_filter()
-        mA_page.show_key_column_multi_select_filter()
+        mA_page.show_key_column_multi_select_filter(
+            valid_selection_list=[10, 50, 100, 125, 160, 220, 280, 320, 360, 400, 450, 500, 630, 800]
+        )
         mA_page.show_log_and_statistics_table()
         mA_page.show_bar_chart()
         mA_page.show_pie_chart()
@@ -37,7 +39,10 @@ if uploaded_file:
             statistics.log_table,
         )
         kV_page.show_log_filter()
-        kV_page.show_key_column_range_select_filter()
+        kV_page.show_key_column_range_select_filter(
+            valid_range_min=40,
+            valid_range_max=150,
+        )
         kV_page.show_log_and_statistics_table()
         kV_page.show_bar_chart()
         kV_page.show_pie_chart()
@@ -48,7 +53,10 @@ if uploaded_file:
             statistics.log_table,
         )
         ms_page.show_log_filter()
-        ms_page.show_key_column_range_select_filter()
+        ms_page.show_key_column_range_select_filter(
+            valid_range_min=1,
+            valid_range_max=5000,
+        )
         ms_page.show_log_and_statistics_table()
         ms_page.show_bar_chart()
         ms_page.show_pie_chart()
@@ -81,7 +89,18 @@ if uploaded_file:
             statistics.log_table,
         )
         exposition_page.show_log_filter()
-        exposition_page.show_column_multi_select_filter("mA")
-        exposition_page.show_column_range_select_filter("kV")
-        exposition_page.show_column_range_select_filter("ms")
+        exposition_page.show_column_multi_select_filter(
+            "mA",
+            valid_selection_list=[10, 50, 100, 125, 160, 220, 280, 320, 360, 400, 450, 500, 630, 800],
+        )
+        exposition_page.show_column_range_select_filter(
+            "kV",
+            valid_range_min=40,
+            valid_range_max=150,
+        )
+        exposition_page.show_column_range_select_filter(
+            "ms",
+            valid_range_min=1,
+            valid_range_max=5000,
+        )
         exposition_page.show_log_and_statistics_table()
