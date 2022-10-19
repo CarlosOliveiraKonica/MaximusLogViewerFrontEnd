@@ -3,7 +3,6 @@ import pandas as pd
 from common.excel_reader import ExcelReader
 
 
-
 class TableInterface:
     def __init__(self, sheet_name: str) -> None:
         self._excel_reader = ExcelReader(sheet_name)
@@ -19,6 +18,10 @@ class TableInterface:
 
 
 class LogLegendTable(TableInterface):
+
+    COLUMN_INDEXES = "Índice"
+    COLUMN_FILES = "Arquivo"
+
     def __init__(self) -> None:
         super().__init__("Legenda")
         self._logs_dict = {}
@@ -27,9 +30,9 @@ class LogLegendTable(TableInterface):
 
     def __get_logs_dict(self) -> dict:
         logs_dataframe = self._excel_reader.get_dataframe()
-        logs_dataframe_dict = logs_dataframe.to_dict()
-        logs_dataframe_layer = logs_dataframe_dict.values()
-        return list(logs_dataframe_layer)[0]
+        logs_dataframe_indexes = logs_dataframe[LogLegendTable.COLUMN_INDEXES].to_list()
+        logs_dataframe_files = logs_dataframe[LogLegendTable.COLUMN_FILES].to_list()
+        return dict(zip(logs_dataframe_indexes, logs_dataframe_files))
 
     def __get_logs_indexes(self) -> list:
         return list(self._logs_dict.keys())
@@ -45,7 +48,11 @@ class LogLegendTable(TableInterface):
 
     def get_dataframe(self) -> pd.DataFrame:
         dataframe = self._excel_reader.get_dataframe()
-        return dataframe["Arquivo"]
+        return dataframe[[LogLegendTable.COLUMN_INDEXES, LogLegendTable.COLUMN_FILES]]
+
+    def get_dataframe_filtered_by_logs_indexes(self, logs_indexes: list) -> pd.DataFrame:
+        dataframe = self.get_dataframe()
+        return dataframe[dataframe[LogLegendTable.COLUMN_INDEXES].isin(logs_indexes)]
 
     def get_logs_dict(self) -> dict:
         return self._logs_dict.copy()
@@ -63,7 +70,8 @@ class LogLegendTable(TableInterface):
         return [self.get_log_name_by_index(log_index) for log_index in index_list]
 
     def get_log_index_by_name(self, name: str) -> int:
-        return self._logs_names.index(name)
+        index = self._logs_names.index(name)
+        return self._logs_indexes[index]
 
     def get_log_indexes_by_names(self, name_list: list) -> list:
         return [self.get_log_index_by_name(log_name) for log_name in name_list]
@@ -99,6 +107,7 @@ class StatisticsTableInterface(TableInterface):
 
     def get_all_columns_including_logs(self, logs_columns: list) -> list:
         columns = [self.get_key_column()]
+        columns.extend(self.get_sub_key_columns())
         columns.extend(logs_columns)
         columns.extend([self.get_total_column()])
         return columns
@@ -124,9 +133,18 @@ class StatisticsTableInterface(TableInterface):
         else:
             return dataframe
 
-    def get_rows_list_from_column(self, column: str) -> list:
+    def get_rows_list_from_column(self, column: str, non_duplicated=False, non_nan=False) -> list:
         dataframe = self.get_dataframe()
-        return dataframe[column].to_list()
+        if non_nan:
+            dataframe.dropna(inplace=True)
+        rows_list = dataframe[column].to_list()
+        if non_duplicated:
+            rows_list = list(dict.fromkeys(rows_list))
+            try:
+                rows_list.sort()
+            except TypeError:
+                pass
+        return rows_list
 
 
 class mA_Table(StatisticsTableInterface):
