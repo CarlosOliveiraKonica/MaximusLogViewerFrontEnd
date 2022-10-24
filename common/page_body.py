@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 
-from common.tables import StatisticsTableInterface, LogLegendTable
+from common.tables import StatisticsTableInterface, LogLegendTable, TableInterface
 
 
 class StatisticsPage:
@@ -199,3 +199,18 @@ class StatisticsPage:
             )
         )
         st.plotly_chart(figure, use_container_width=True)
+
+
+class LogsPage:
+    def __init__(self, log_table: LogLegendTable, uploaded_file: str) -> None:
+        self._log_table = log_table
+        self._uploaded_file = uploaded_file
+
+    def show_log_filter(self) -> None:
+        log_selected = st.selectbox('\nLogs sob análise:', self._log_table.get_logs_names())
+        if log_selected:
+            log_index_selected = self._log_table.get_log_index_by_name(log_selected)
+            log_table_selected = TableInterface(sheet_name=log_index_selected)
+            log_table_selected.set_file(self._uploaded_file)
+            st.write("\nHistórico do log selecionado")
+            st.write(log_table_selected.get_dataframe().astype(str))

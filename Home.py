@@ -1,7 +1,7 @@
 import streamlit as st
 
 from common.tables import StatisticsTables
-from common.page_body import StatisticsPage
+from common.page_body import StatisticsPage, LogsPage
 
 
 st.set_page_config(page_title="MaximusLogViewer", layout="wide")
@@ -16,8 +16,8 @@ if uploaded_file:
     statistics = StatisticsTables()
     statistics.set_file(uploaded_file)
 
-    mA_tab, kV_tab, ms_tab, failure_tab, warning_tab, exposition_tab = st.tabs(
-        ["mA", "kV", "ms", "Falha", "Warning", "Exposição"]
+    mA_tab, kV_tab, ms_tab, failure_tab, warning_tab, exposition_tab, logs_tab = st.tabs(
+        ["mA", "kV", "ms", "Falha", "Warning", "Exposição", "Logs"]
     )
     
     with mA_tab:
@@ -104,3 +104,10 @@ if uploaded_file:
             valid_range_max=5000,
         )
         exposition_page.show_log_and_statistics_table()
+
+    with logs_tab:
+        logs_page = LogsPage(
+            statistics.log_table,
+            uploaded_file,
+        )
+        logs_page.show_log_filter()
