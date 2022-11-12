@@ -174,7 +174,7 @@ class WarningTable(StatisticsTableInterface):
 
 class ExpositionTable(StatisticsTableInterface):
     def __init__(self) -> None:
-        super().__init__("Exposição", "Exposição", ["mA", "kV", "ms"])
+        super().__init__("Exposição", "Exposição", ["mA", "kV", "ms", "mAs", "kW", "kJ", "Ganho mA", "Indutor"])
 
 
 class StatisticsTables:

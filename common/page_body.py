@@ -82,6 +82,7 @@ class StatisticsPage:
         rows_list = self.__get_rows_list_from_column(self._key_column)
         if (valid_range_min is not None) and (valid_range_max is not None):
             if st.checkbox("Filtrar somente valores válidos", value=True, key=self.__next_selector_key()):
+                rows_list = [row for row in rows_list if (isinstance(row, int)) or (isinstance(row, float))]
                 rows_list = [row for row in rows_list if (row >= valid_range_min) and (row <= valid_range_max)]
         min_value = int(min(rows_list))
         max_value = int(max(rows_list))
@@ -95,6 +96,7 @@ class StatisticsPage:
         rows_list = self.__get_rows_list_from_column(column_name)
         if (valid_range_min is not None) and (valid_range_max is not None):
             if st.checkbox("Filtrar somente valores válidos", value=True, key=self.__next_selector_key()):
+                rows_list = [row for row in rows_list if (isinstance(row, int)) or (isinstance(row, float))]
                 rows_list = [row for row in rows_list if (row >= valid_range_min) and (row <= valid_range_max)]
         min_value = int(min(rows_list))
         max_value = int(max(rows_list))
