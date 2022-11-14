@@ -164,12 +164,12 @@ class ms_Table(StatisticsTableInterface):
 
 class FailureTable(StatisticsTableInterface):
     def __init__(self) -> None:
-        super().__init__("Falha", "Falha")
+        super().__init__("Falha", "Falha", ["Tradução da Falha"])
 
 
 class WarningTable(StatisticsTableInterface):
     def __init__(self) -> None:
-        super().__init__("Warning", "Warning")
+        super().__init__("Warning", "Warning", ["Tradução da Warning"])
 
 
 class ExpositionTable(StatisticsTableInterface):

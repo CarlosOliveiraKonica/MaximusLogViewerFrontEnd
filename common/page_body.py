@@ -176,6 +176,7 @@ class StatisticsPage:
         chart_dataframe = self._total_dataframe.copy()
         chart_dataframe = chart_dataframe.rename(columns={self._key_column: 'index'})
         chart_dataframe = chart_dataframe.drop("TOTAL", axis="columns", errors="ignore")
+        chart_dataframe = chart_dataframe.drop(self._statistics_table.get_sub_key_columns(), axis="columns", errors="ignore")
         chart_dataframe = chart_dataframe.drop(chart_dataframe[chart_dataframe['index'] == "TOTAL"].index)
         chart_dataframe = chart_dataframe.set_index('index')
         st.bar_chart(chart_dataframe)
