@@ -59,16 +59,13 @@ class StatisticsPage:
         rows_selected.append("TOTAL")
         self._rows_selected_from_column_dict[column_name] = rows_selected
 
-    def show_key_column_multi_select_filter(self, valid_selection_list=[]) -> None:
-        user_message = self.__get_user_message_to_filter(self._key_column)
-        rows_list = self.__get_rows_list_from_column(self._key_column)
-        if valid_selection_list:
-            if st.checkbox("Filtrar somente valores válidos", value=True, key=self.__next_selector_key()):
-                rows_list = [row for row in rows_list if row in valid_selection_list]
-        rows_selected_from_column = st.multiselect(user_message, rows_list, rows_list, key=self.__next_selector_key())
-        self.__add_total_row_to_rows_selected_dict(self._key_column, rows_selected_from_column)
-
-    def show_column_multi_select_filter(self, column_name: str, valid_selection_list=[]) -> None:
+    def show_column_multi_select_filter(self, column_name=None, valid_selection_list=[]) -> None:
+        """Show a multi selection filter.
+        
+        If 'column_name' is omitted, then uses the 'key_column'.
+        """
+        if column_name is None:
+            column_name = self._key_column
         user_message = self.__get_user_message_to_filter(column_name)
         rows_list = self.__get_rows_list_from_column(column_name)
         if valid_selection_list:
@@ -77,21 +74,13 @@ class StatisticsPage:
         rows_selected_from_column = st.multiselect(user_message, rows_list, rows_list, key=self.__next_selector_key())
         self.__add_total_row_to_rows_selected_dict(column_name, rows_selected_from_column)
 
-    def show_key_column_range_select_filter(self, valid_range_min=None, valid_range_max=None) -> None:
-        user_message = self.__get_user_message_to_filter(self._key_column)
-        rows_list = self.__get_rows_list_from_column(self._key_column)
-        if (valid_range_min is not None) and (valid_range_max is not None):
-            if st.checkbox("Filtrar somente valores válidos", value=True, key=self.__next_selector_key()):
-                rows_list = [row for row in rows_list if (isinstance(row, int)) or (isinstance(row, float))]
-                rows_list = [row for row in rows_list if (row >= valid_range_min) and (row <= valid_range_max)]
-        min_value = int(min(rows_list))
-        max_value = int(max(rows_list))
-        range_value = list(range(min_value, max_value+1))
-        min_value, max_value = st.select_slider(user_message, options=range_value, value=(min_value, max_value), key=self.__next_selector_key())
-        rows_selected_from_column = [value for value in rows_list if value >= min_value and value <= max_value]
-        self.__add_total_row_to_rows_selected_dict(self._key_column, rows_selected_from_column)
-
-    def show_column_range_select_filter(self, column_name: str, valid_range_min=None, valid_range_max=None) -> None:
+    def show_column_range_select_filter(self, column_name=None, valid_range_min=None, valid_range_max=None) -> None:
+        """Show a range selection filter.
+        
+        If 'column_name' is omitted, then uses the 'key_column'.
+        """
+        if column_name is None:
+            column_name = self._key_column
         user_message = self.__get_user_message_to_filter(column_name)
         rows_list = self.__get_rows_list_from_column(column_name)
         if (valid_range_min is not None) and (valid_range_max is not None):

@@ -26,7 +26,7 @@ if uploaded_file:
             statistics.log_table,
         )
         mA_page.show_log_filter()
-        mA_page.show_key_column_multi_select_filter(
+        mA_page.show_column_multi_select_filter(
             valid_selection_list=[10, 50, 100, 125, 160, 220, 280, 320, 360, 400, 450, 500, 630, 800]
         )
         mA_page.show_log_and_statistics_table()
@@ -39,7 +39,7 @@ if uploaded_file:
             statistics.log_table,
         )
         kV_page.show_log_filter()
-        kV_page.show_key_column_range_select_filter(
+        kV_page.show_column_range_select_filter(
             valid_range_min=40,
             valid_range_max=150,
         )
@@ -53,7 +53,7 @@ if uploaded_file:
             statistics.log_table,
         )
         ms_page.show_log_filter()
-        ms_page.show_key_column_range_select_filter(
+        ms_page.show_column_range_select_filter(
             valid_range_min=1,
             valid_range_max=5000,
         )
@@ -67,7 +67,7 @@ if uploaded_file:
             statistics.log_table,
         )
         failure_page.show_log_filter()
-        failure_page.show_key_column_multi_select_filter()
+        failure_page.show_column_multi_select_filter()
         failure_page.show_log_and_statistics_table()
         failure_page.show_bar_chart()
         failure_page.show_pie_chart()
@@ -78,7 +78,7 @@ if uploaded_file:
             statistics.log_table,
         )
         warning_page.show_log_filter()
-        warning_page.show_key_column_multi_select_filter()
+        warning_page.show_column_multi_select_filter()
         warning_page.show_log_and_statistics_table()
         warning_page.show_bar_chart()
         warning_page.show_pie_chart()
