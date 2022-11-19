@@ -55,10 +55,12 @@ class StatisticsPage:
 
     def __get_rows_list_from_column(self, column_name: str) -> list:
         rows_list = self._statistics_table.get_rows_list_from_column(column_name, non_duplicated=True, non_nan=True)
-        try:
-            rows_list.remove("TOTAL")
-        except ValueError:
-            pass
+        non_included_values_list = ["TOTAL", "", " "]
+        for non_included_value in non_included_values_list:
+            try:
+                rows_list.remove(non_included_value)
+            except ValueError:
+                pass
         return rows_list
 
 
