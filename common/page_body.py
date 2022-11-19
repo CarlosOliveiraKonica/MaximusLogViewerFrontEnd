@@ -140,7 +140,7 @@ class StatisticsPage:
     def __add_total_line(self) -> pd.DataFrame:
         total_line_dataframe = self.__get_total_line_dataframe()
         self._total_dataframe = pd.concat([self._total_dataframe, total_line_dataframe], ignore_index=True)
-        self._total_dataframe.fillna("", inplace=True)
+        self._total_dataframe.fillna(pd.NA, inplace=True)
         return self._total_dataframe
 
 
@@ -149,7 +149,7 @@ class StatisticsPage:
         columns_list.append(self._statistics_table.get_total_column())
         data_list = [[self._total_dataframe[column].sum()] for column in columns_list]
         columns_list.insert(0, self._key_column)
-        data_list.insert(0, "TOTAL")
+        data_list.insert(0, pd.NA)
         return pd.DataFrame(dict(zip(columns_list, data_list)))
 
 
@@ -189,16 +189,16 @@ class StatisticsPage:
             self._total_dataframe = self.__add_total_column()
             self._total_dataframe = self.__remove_total_line()
             self._total_dataframe = self.__add_total_line()
-            st.write(self._total_dataframe.astype(str))
+            st.dataframe(self._total_dataframe)
 
 
     def show_bar_chart(self) -> None:
         st.write("\nGráfico de barras: quantidade por {}".format(self._statistics_table.get_sheet_name()))
         chart_dataframe = self._total_dataframe.copy()
+        chart_dataframe = chart_dataframe.dropna()
         chart_dataframe = chart_dataframe.rename(columns={self._key_column: 'index'})
         chart_dataframe = chart_dataframe.drop("TOTAL", axis="columns", errors="ignore")
         chart_dataframe = chart_dataframe.drop(self._statistics_table.get_sub_key_columns(), axis="columns", errors="ignore")
-        chart_dataframe = chart_dataframe.drop(chart_dataframe[chart_dataframe['index'] == "TOTAL"].index)
         chart_dataframe = chart_dataframe.set_index('index')
         st.bar_chart(chart_dataframe)
 
@@ -214,6 +214,7 @@ class StatisticsPage:
 
         # Chart
         chart_dataframe = self._total_dataframe.copy()
+        chart_dataframe = chart_dataframe.dropna()
         chart_dataframe = chart_dataframe.drop(chart_dataframe[chart_dataframe[self._key_column] == "TOTAL"].index)
         figure = go.Figure(
             go.Pie(
