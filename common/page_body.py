@@ -1,3 +1,5 @@
+from abc import ABC
+
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
@@ -5,7 +7,9 @@ import plotly.graph_objects as go
 from common.tables import StatisticsTableInterface, LogLegendTable, TableInterface
 
 
-class StatisticsPage:
+class StatisticsPageInterface(ABC):
+    """Abstract class useful to show statistics related to parameters such as mA, kV, Warning, etc."""
+    
     def __init__(self, statistics_table: StatisticsTableInterface, log_table: LogLegendTable) -> None:
         self._statistics_table = statistics_table
         self._log_table = log_table
@@ -24,6 +28,10 @@ class StatisticsPage:
         self._total_dataframe = pd.DataFrame()
 
         self._selector_key = 0
+
+
+    def show_page_header(self) -> None:
+        st.header("Estatísticas de " + self._statistics_table.get_sheet_name())
 
 
     def __next_selector_key(self):
@@ -228,16 +236,110 @@ class StatisticsPage:
         st.plotly_chart(figure, use_container_width=True)
 
 
-class LogsPage:
-    def __init__(self, log_table: LogLegendTable, uploaded_file: str) -> None:
-        self._log_table = log_table
-        self._uploaded_file = uploaded_file
+class mA_StatisticsPage(StatisticsPageInterface):
+    
+    MA_VALID_SELECTION_LIST = [10, 50, 100, 125, 160, 220, 280, 320, 360, 400, 450, 500, 630, 800]
+    
+    def __init__(self, statistics_table: StatisticsTableInterface, log_table: LogLegendTable) -> None:
+        super().__init__(statistics_table, log_table)
 
-    def show_log_filter(self) -> None:
-        log_selected = st.selectbox('\nLogs sob análise:', self._log_table.get_logs_names())
-        if log_selected:
-            log_index_selected = self._log_table.get_log_index_by_name(log_selected)
-            log_table_selected = TableInterface(sheet_name=log_index_selected)
-            log_table_selected.set_file(self._uploaded_file)
-            st.write("\nHistórico do log selecionado")
-            st.write(log_table_selected.get_dataframe().astype(str))
+    def show_page(self) -> None:
+        self.show_page_header()
+        self.show_log_filter()
+        self.show_column_multi_select_filter(valid_selection_list=mA_StatisticsPage.MA_VALID_SELECTION_LIST)
+        self.show_log_and_statistics_table()
+        self.show_bar_chart()
+        self.show_pie_chart()
+
+
+class kV_StatisticsPage(StatisticsPageInterface):
+
+    KV_VALID_RANGE_MIN = 40
+    KV_VALID_RANGE_MAX = 150
+
+    def __init__(self, statistics_table: StatisticsTableInterface, log_table: LogLegendTable) -> None:
+        super().__init__(statistics_table, log_table)
+
+    def show_page(self) -> None:
+        self.show_page_header()
+        self.show_log_filter()
+        self.show_column_range_select_filter(
+            valid_range_min=kV_StatisticsPage.KV_VALID_RANGE_MIN,
+            valid_range_max=kV_StatisticsPage.KV_VALID_RANGE_MAX,
+        )
+        self.show_log_and_statistics_table()
+        self.show_bar_chart()
+        self.show_pie_chart()
+
+
+class ms_StatisticsPage(StatisticsPageInterface):
+
+    MS_VALID_RANGE_MIN = 1
+    MS_VALID_RANGE_MAX = 5000
+
+    def __init__(self, statistics_table: StatisticsTableInterface, log_table: LogLegendTable) -> None:
+        super().__init__(statistics_table, log_table)
+
+    def show_page(self) -> None:
+        self.show_page_header()
+        self.show_log_filter()
+        self.show_column_range_select_filter(
+            valid_range_min=ms_StatisticsPage.MS_VALID_RANGE_MIN,
+            valid_range_max=ms_StatisticsPage.MS_VALID_RANGE_MAX,
+        )
+        self.show_log_and_statistics_table()
+        self.show_bar_chart()
+        self.show_pie_chart()
+
+
+class Failure_StatisticsPage(StatisticsPageInterface):
+
+    def __init__(self, statistics_table: StatisticsTableInterface, log_table: LogLegendTable) -> None:
+        super().__init__(statistics_table, log_table)
+
+    def show_page(self) -> None:
+        self.show_page_header()
+        self.show_log_filter()
+        self.show_column_multi_select_filter()
+        self.show_log_and_statistics_table()
+        self.show_bar_chart()
+        self.show_pie_chart()
+
+
+class Warning_StatisticsPage(StatisticsPageInterface):
+
+    def __init__(self, statistics_table: StatisticsTableInterface, log_table: LogLegendTable) -> None:
+        super().__init__(statistics_table, log_table)
+
+    def show_page(self) -> None:
+        self.show_page_header()
+        self.show_log_filter()
+        self.show_column_multi_select_filter()
+        self.show_log_and_statistics_table()
+        self.show_bar_chart()
+        self.show_pie_chart()
+
+
+class Exposition_StatisticsPage(StatisticsPageInterface):
+
+    def __init__(self, statistics_table: StatisticsTableInterface, log_table: LogLegendTable) -> None:
+        super().__init__(statistics_table, log_table)
+
+    def show_page(self) -> None:
+        self.show_page_header()
+        self.show_log_filter()
+        self.show_column_multi_select_filter(
+            column_name="mA",
+            valid_selection_list=mA_StatisticsPage.MA_VALID_SELECTION_LIST,
+        )
+        self.show_column_range_select_filter(
+            column_name="kV",
+            valid_range_min=kV_StatisticsPage.KV_VALID_RANGE_MIN,
+            valid_range_max=kV_StatisticsPage.KV_VALID_RANGE_MAX,
+        )
+        self.show_column_range_select_filter(
+            column_name="ms",
+            valid_range_min=ms_StatisticsPage.MS_VALID_RANGE_MIN,
+            valid_range_max=ms_StatisticsPage.MS_VALID_RANGE_MAX,
+        )
+        self.show_log_and_statistics_table()
