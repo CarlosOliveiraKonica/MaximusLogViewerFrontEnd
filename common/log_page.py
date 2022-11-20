@@ -1,6 +1,9 @@
+"""File useful to display an special page for Log History Analysis."""
+
 import streamlit as st
 
 from common.tables import LogLegendTable, TableInterface
+
 
 class LogsPage:
     def __init__(self, log_table: LogLegendTable, uploaded_file: str) -> None:

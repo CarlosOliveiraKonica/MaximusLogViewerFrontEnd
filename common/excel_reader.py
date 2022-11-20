@@ -1,3 +1,5 @@
+"""File useful to interact with Excel spreadsheets."""
+
 import pandas as pd
 
 

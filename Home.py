@@ -1,8 +1,10 @@
+"""This is the main file of the project."""
+
 import streamlit as st
 
 from common.tables import StatisticsTables
 from common.log_page import LogsPage
-from common.page_body import (
+from common.log_statistics_page import (
     mA_StatisticsPage,
     kV_StatisticsPage,
     ms_StatisticsPage,

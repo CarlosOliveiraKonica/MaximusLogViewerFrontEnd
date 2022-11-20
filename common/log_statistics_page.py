@@ -1,10 +1,12 @@
+"""File useful to display special pages related to Log Statistics."""
+
 from abc import ABC
 
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 
-from common.tables import StatisticsTableInterface, LogLegendTable, TableInterface
+from common.tables import StatisticsTableInterface, LogLegendTable
 
 
 class StatisticsPageInterface(ABC):

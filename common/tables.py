@@ -1,3 +1,5 @@
+"""File useful to interact with different tabs/sheets of Excel spreadsheets."""
+
 import pandas as pd
 
 from common.excel_reader import ExcelReader
