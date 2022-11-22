@@ -89,50 +89,46 @@ class StatisticsPageInterface(ABC):
         self.__add_total_row_to_rows_selected_dict(column_name, rows_selected_from_column)
 
 
-    def __valid_values_checkbox_is_marked(self, left_col: st.columns):
-        return left_col.checkbox("Somente valores válidos", value=True, key=self.__next_selector_key())
+    def show_valid_values_checkbox(self):
+        return st.checkbox("Filtrar somente valores válidos", value=True, key=self.__next_selector_key())
 
 
-    def __get_2_st_columns_with_adjusted_length(self, flag_condition: bool):
-        if flag_condition:
-            valid_checkbox_col, column_filter_col = st.columns([1, 6])
-        else:
-            valid_checkbox_col, column_filter_col = st.columns([0.1, 6])
-        return valid_checkbox_col, column_filter_col
-
-
-    def show_column_multi_select_filter(self, column_name=None, valid_selection_list=[]) -> None:
+    def show_column_multi_select_filter(
+        self, column_name=None, valid_selection_list=[], show_valid_checkbox=None, forced_checkbox_value=None
+        ) -> None:
         """Show a multi selection filter, given the 'valid_selection_list'.
         
         If 'column_name' is omitted, then uses the 'key_column'.
         If 'valid_selection_list' is ommited, then the 'valid values filter' is also omitted.
         """
-        condition = len(valid_selection_list) > 0
         column_name, user_message, rows_list = self.__initial_routine_for_column_filter(column_name)
-        valid_checkbox_col, column_filter_col = self.__get_2_st_columns_with_adjusted_length(condition)
-        if condition:
-            if self.__valid_values_checkbox_is_marked(valid_checkbox_col):
-                rows_list = [row for row in rows_list if row in valid_selection_list]
-        rows_selected_from_column = column_filter_col.multiselect(user_message, rows_list, rows_list, key=self.__next_selector_key())
+        valid_checkbox_option = None
+        if show_valid_checkbox:
+            valid_checkbox_option = self.show_valid_values_checkbox()
+        if valid_checkbox_option or forced_checkbox_value:
+            rows_list = [row for row in rows_list if row in valid_selection_list]
+        rows_selected_from_column = st.multiselect(user_message, rows_list, rows_list, key=self.__next_selector_key())
         self.__final_routine_for_column_filter(column_name, rows_selected_from_column)
 
-    def show_column_range_select_filter(self, column_name=None, valid_range_min=None, valid_range_max=None) -> None:
+    def show_column_range_select_filter(
+        self, column_name=None, valid_range_min=None, valid_range_max=None, show_valid_checkbox=None, forced_checkbox_value=None
+        ) -> None:
         """Show a range selection filter, given the 'valid_range_min' and 'valid_range_max'.
         
         If 'column_name' is omitted, then uses the 'key_column'.
         If 'valid_range_min' or 'valid_range_max' are ommited, then the 'valid values filter' is also omitted.
         """
-        condition = (valid_range_min is not None) and (valid_range_max is not None)
         column_name, user_message, rows_list = self.__initial_routine_for_column_filter(column_name)
-        valid_checkbox_col, column_filter_col = self.__get_2_st_columns_with_adjusted_length(condition)
-        if condition:
-            if self.__valid_values_checkbox_is_marked(valid_checkbox_col):
-                rows_list = [row for row in rows_list if (isinstance(row, int)) or (isinstance(row, float))]
-                rows_list = [row for row in rows_list if (row >= valid_range_min) and (row <= valid_range_max)]
+        valid_checkbox_option = None
+        if show_valid_checkbox:
+            valid_checkbox_option = self.show_valid_values_checkbox()
+        if valid_checkbox_option or forced_checkbox_value:
+            rows_list = [row for row in rows_list if (isinstance(row, int)) or (isinstance(row, float))]
+            rows_list = [row for row in rows_list if (row >= valid_range_min) and (row <= valid_range_max)]
         min_value = int(min(rows_list))
         max_value = int(max(rows_list))
         range_value = list(range(min_value, max_value+1))
-        min_value, max_value = column_filter_col.select_slider(user_message, options=range_value, value=(min_value, max_value), key=self.__next_selector_key())
+        min_value, max_value = st.select_slider(user_message, options=range_value, value=(min_value, max_value), key=self.__next_selector_key())
         rows_selected_from_column = [value for value in rows_list if value >= min_value and value <= max_value]
         self.__final_routine_for_column_filter(column_name, rows_selected_from_column)
 
@@ -248,7 +244,10 @@ class mA_StatisticsPage(StatisticsPageInterface):
     def show_page(self) -> None:
         self.show_page_header()
         self.show_log_filter()
-        self.show_column_multi_select_filter(valid_selection_list=mA_StatisticsPage.MA_VALID_SELECTION_LIST)
+        self.show_column_multi_select_filter(
+            valid_selection_list=mA_StatisticsPage.MA_VALID_SELECTION_LIST,
+            show_valid_checkbox=True,
+        )
         self.show_log_and_statistics_table()
         self.show_bar_chart()
         self.show_pie_chart()
@@ -268,6 +267,7 @@ class kV_StatisticsPage(StatisticsPageInterface):
         self.show_column_range_select_filter(
             valid_range_min=kV_StatisticsPage.KV_VALID_RANGE_MIN,
             valid_range_max=kV_StatisticsPage.KV_VALID_RANGE_MAX,
+            show_valid_checkbox=True,
         )
         self.show_log_and_statistics_table()
         self.show_bar_chart()
@@ -288,6 +288,7 @@ class ms_StatisticsPage(StatisticsPageInterface):
         self.show_column_range_select_filter(
             valid_range_min=ms_StatisticsPage.MS_VALID_RANGE_MIN,
             valid_range_max=ms_StatisticsPage.MS_VALID_RANGE_MAX,
+            show_valid_checkbox=True,
         )
         self.show_log_and_statistics_table()
         self.show_bar_chart()
@@ -330,18 +331,27 @@ class Exposition_StatisticsPage(StatisticsPageInterface):
     def show_page(self) -> None:
         self.show_page_header()
         self.show_log_filter()
+        valid_values_checkbox_option = self.show_valid_values_checkbox()
         self.show_column_multi_select_filter(
             column_name="mA",
             valid_selection_list=mA_StatisticsPage.MA_VALID_SELECTION_LIST,
+            forced_checkbox_value=valid_values_checkbox_option,
         )
         self.show_column_range_select_filter(
             column_name="kV",
             valid_range_min=kV_StatisticsPage.KV_VALID_RANGE_MIN,
             valid_range_max=kV_StatisticsPage.KV_VALID_RANGE_MAX,
+            forced_checkbox_value=valid_values_checkbox_option,
         )
         self.show_column_range_select_filter(
             column_name="ms",
             valid_range_min=ms_StatisticsPage.MS_VALID_RANGE_MIN,
             valid_range_max=ms_StatisticsPage.MS_VALID_RANGE_MAX,
+            forced_checkbox_value=valid_values_checkbox_option,
         )
+        self.show_column_range_select_filter(column_name="mAs")
+        self.show_column_range_select_filter(column_name="kW")
+        self.show_column_range_select_filter(column_name="kJ")
+        self.show_column_multi_select_filter(column_name="Ganho mA")
+        self.show_column_multi_select_filter(column_name="Indutor")
         self.show_log_and_statistics_table()
