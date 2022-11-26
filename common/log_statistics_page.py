@@ -349,9 +349,24 @@ class Exposition_StatisticsPage(StatisticsPageInterface):
             valid_range_max=ms_StatisticsPage.MS_VALID_RANGE_MAX,
             forced_checkbox_value=valid_values_checkbox_option,
         )
-        self.show_column_range_select_filter(column_name="mAs")
-        self.show_column_range_select_filter(column_name="kW")
-        self.show_column_range_select_filter(column_name="kJ")
+        self.show_column_range_select_filter(
+            column_name="mAs",
+            valid_range_min=0,
+            valid_range_max=500,
+            forced_checkbox_value=valid_values_checkbox_option,
+        )
+        self.show_column_range_select_filter(
+            column_name="kW",
+            valid_range_min=0,
+            valid_range_max=64,
+            forced_checkbox_value=valid_values_checkbox_option,
+        )
+        self.show_column_range_select_filter(
+            column_name="kJ",
+            valid_range_min=0,
+            valid_range_max=300, # I need to double check this value
+            forced_checkbox_value=valid_values_checkbox_option,
+        )
         self.show_column_multi_select_filter(column_name="Ganho mA")
         self.show_column_multi_select_filter(column_name="Indutor")
         self.show_log_and_statistics_table()
