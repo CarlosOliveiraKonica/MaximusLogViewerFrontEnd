@@ -40,7 +40,7 @@ class StatisticsPageInterface(ABC):
         st.header("Estatísticas de " + self._statistics_table.get_sheet_name())
 
 
-    def __next_selector_key(self):
+    def next_selector_key(self):
         """Workaround to solve DuplicatedWidgetID exception from Streamlit.
         This will generate unique IDs for selection widgets based on 'sheet_name'.
         """
@@ -49,7 +49,7 @@ class StatisticsPageInterface(ABC):
 
 
     def show_log_filter(self) -> None:
-        log_selection = st.multiselect('\nLogs sob análise:', self._log_table.get_logs_names(), key=self.__next_selector_key())
+        log_selection = st.multiselect('\nLogs sob análise:', self._log_table.get_logs_names(), key=self.next_selector_key())
         if log_selection:
             self._selected_logs_names = log_selection
         else:
@@ -94,7 +94,7 @@ class StatisticsPageInterface(ABC):
 
 
     def show_valid_values_checkbox(self):
-        return st.checkbox("Filtrar somente valores válidos", value=True, key=self.__next_selector_key())
+        return st.checkbox("Filtrar somente valores válidos", value=True, key=self.next_selector_key())
 
 
     def show_column_multi_select_filter(
@@ -111,7 +111,7 @@ class StatisticsPageInterface(ABC):
             valid_checkbox_option = self.show_valid_values_checkbox()
         if valid_checkbox_option or forced_checkbox_value:
             rows_list = [row for row in rows_list if row in valid_selection_list]
-        rows_selected_from_column = st.multiselect(user_message, rows_list, rows_list, key=self.__next_selector_key())
+        rows_selected_from_column = st.multiselect(user_message, rows_list, rows_list, key=self.next_selector_key())
         self.__final_routine_for_column_filter(column_name, rows_selected_from_column)
 
     def show_column_range_select_filter(
@@ -132,7 +132,7 @@ class StatisticsPageInterface(ABC):
         min_value = int(min(rows_list))
         max_value = int(max(rows_list))
         range_value = list(range(min_value, max_value+1))
-        min_value, max_value = st.select_slider(user_message, options=range_value, value=(min_value, max_value), key=self.__next_selector_key())
+        min_value, max_value = st.select_slider(user_message, options=range_value, value=(min_value, max_value), key=self.next_selector_key())
         rows_selected_from_column = [value for value in rows_list if value >= min_value and value <= max_value]
         self.__final_routine_for_column_filter(column_name, rows_selected_from_column)
 
@@ -207,7 +207,7 @@ class StatisticsPageInterface(ABC):
     def show_log_sub_selection(self) -> str:
         selection_with_total = self._selected_logs_names.copy()
         selection_with_total.append("TOTAL")
-        selection = st.selectbox('\nSelecione a fonte de dados:', selection_with_total, key=self.__next_selector_key())
+        selection = st.selectbox('\nSelecione a fonte de dados:', selection_with_total, key=self.next_selector_key())
         if selection != "TOTAL":
             return self._log_table.get_log_index_by_name(selection)
         else:
@@ -331,6 +331,29 @@ class Warning_StatisticsPage(StatisticsPageInterface):
 
 class Exposition_StatisticsPage(StatisticsPageInterface):
 
+    EXPOSITION_COLUMN = "Exposição"
+    MA_COLUMN = "mA"
+    KV_COLUMN = "kV"
+    MS_COLUMN = "ms"
+    MAS_COLUMN = "mAs"
+    KW_COLUMN = "kW"
+    KJ_COLUMN = "kJ"
+    MA_GAIN_COLUMN = "Ganho mA"
+    INDUCTOR_COLUMN = "Indutor"
+    
+    X_Y_AXES_SELECTION_LIST = [
+        MA_COLUMN,
+        KV_COLUMN,
+        MS_COLUMN,
+        MAS_COLUMN,
+        KW_COLUMN,
+        KJ_COLUMN,
+        MA_GAIN_COLUMN,
+        INDUCTOR_COLUMN,
+    ]
+    X_INDEX_DEFAULT = 3
+    Y_INDEX_DEFAULT = 1
+
     def __init__(self, statistics_table: StatisticsTableInterface, log_table: LogLegendTable) -> None:
         super().__init__(statistics_table, log_table)
 
@@ -339,60 +362,77 @@ class Exposition_StatisticsPage(StatisticsPageInterface):
         self.show_log_filter()
         valid_values_checkbox_option = self.show_valid_values_checkbox()
         self.show_column_multi_select_filter(
-            column_name="mA",
+            column_name=Exposition_StatisticsPage.MA_COLUMN,
             valid_selection_list=mA_StatisticsPage.MA_VALID_SELECTION_LIST,
             forced_checkbox_value=valid_values_checkbox_option,
         )
         self.show_column_range_select_filter(
-            column_name="kV",
+            column_name=Exposition_StatisticsPage.KV_COLUMN,
             valid_range_min=kV_StatisticsPage.KV_VALID_RANGE_MIN,
             valid_range_max=kV_StatisticsPage.KV_VALID_RANGE_MAX,
             forced_checkbox_value=valid_values_checkbox_option,
         )
         self.show_column_range_select_filter(
-            column_name="ms",
+            column_name=Exposition_StatisticsPage.MS_COLUMN,
             valid_range_min=ms_StatisticsPage.MS_VALID_RANGE_MIN,
             valid_range_max=ms_StatisticsPage.MS_VALID_RANGE_MAX,
             forced_checkbox_value=valid_values_checkbox_option,
         )
         self.show_column_range_select_filter(
-            column_name="mAs",
+            column_name=Exposition_StatisticsPage.MAS_COLUMN,
             valid_range_min=0,
             valid_range_max=500,
             forced_checkbox_value=valid_values_checkbox_option,
         )
         self.show_column_range_select_filter(
-            column_name="kW",
+            column_name=Exposition_StatisticsPage.KW_COLUMN,
             valid_range_min=0,
             valid_range_max=64,
             forced_checkbox_value=valid_values_checkbox_option,
         )
         self.show_column_range_select_filter(
-            column_name="kJ",
+            column_name=Exposition_StatisticsPage.KJ_COLUMN,
             valid_range_min=0,
             valid_range_max=300, # I need to double check this value
             forced_checkbox_value=valid_values_checkbox_option,
         )
-        self.show_column_multi_select_filter(column_name="Ganho mA")
-        self.show_column_multi_select_filter(column_name="Indutor")
+        self.show_column_multi_select_filter(column_name=Exposition_StatisticsPage.MA_GAIN_COLUMN)
+        self.show_column_multi_select_filter(column_name=Exposition_StatisticsPage.INDUCTOR_COLUMN)
         self.show_log_and_statistics_table()
         self.show_3D_bar_chart()
 
+    def show_x_y_axes_selection(self):
+        x_selection = st.selectbox(
+            '\nSelecione coluna para o Eixo X:',
+            Exposition_StatisticsPage.X_Y_AXES_SELECTION_LIST,
+            index=Exposition_StatisticsPage.X_INDEX_DEFAULT,
+            key=self.next_selector_key(),
+        )
+        
+        y_selection = st.selectbox(
+            '\nSelecione coluna para o Eixo Y:',
+            Exposition_StatisticsPage.X_Y_AXES_SELECTION_LIST,
+            index=Exposition_StatisticsPage.Y_INDEX_DEFAULT,
+            key=self.next_selector_key(),
+        )
+        return x_selection, y_selection
+
     def show_3D_bar_chart(self) -> None:
         log_selected = self.show_log_sub_selection()
+        x_selected, y_selected = self.show_x_y_axes_selection()
         
         # 3D chart
         df = self._total_dataframe.copy()
-        df = df.drop(df[df["Exposição"] == "TOTAL"].index)
+        df = df.drop(df[df[Exposition_StatisticsPage.EXPOSITION_COLUMN] == "TOTAL"].index)
         df = df.dropna()
-        df = df.groupby(['mAs', 'kV'], as_index=False).sum()
+        df = df.groupby([x_selected, y_selected], as_index=False).sum()
         chart_dataframe = df
         
         fig = plt.figure()
         ax = Axes3D(fig)
         
-        x = chart_dataframe["mAs"]
-        y = chart_dataframe["kV"]
+        x = chart_dataframe[x_selected]
+        y = chart_dataframe[y_selected]
         z = np.zeros(len(x))
         
         dx = np.ones(len(x))
@@ -400,8 +440,8 @@ class Exposition_StatisticsPage(StatisticsPageInterface):
         dz = chart_dataframe[log_selected]
         
         ax.bar3d(x, y, z, dx, dy, dz, shade=True)
-        ax.set_xlabel("mAs")
-        ax.set_ylabel("kV")
+        ax.set_xlabel(x_selected)
+        ax.set_ylabel(y_selected)
         ax.set_zlabel(log_selected)
         
         st.pyplot(fig)
