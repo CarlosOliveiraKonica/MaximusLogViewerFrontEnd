@@ -3,8 +3,12 @@
 from abc import ABC
 
 import pandas as pd
+import numpy as np
 import streamlit as st
 import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+
+from mpl_toolkits.mplot3d import Axes3D
 
 from common.tables import StatisticsTableInterface, LogLegendTable
 
@@ -200,6 +204,15 @@ class StatisticsPageInterface(ABC):
             st.dataframe(self._total_dataframe)
 
 
+    def show_log_sub_selection(self) -> str:
+        selection_with_total = self._selected_logs_names.copy()
+        selection_with_total.append("TOTAL")
+        selection = st.selectbox('\nSelecione a fonte de dados:', selection_with_total, key=self.__next_selector_key())
+        if selection != "TOTAL":
+            return self._log_table.get_log_index_by_name(selection)
+        else:
+            return selection
+
     def show_bar_chart(self) -> None:
         st.write("\nGráfico de barras: quantidade por {}".format(self._statistics_table.get_sheet_name()))
         chart_dataframe = self._total_dataframe.copy()
@@ -211,14 +224,7 @@ class StatisticsPageInterface(ABC):
         st.bar_chart(chart_dataframe)
 
     def show_pie_chart(self) -> None:
-        # Log sub-selection
-        selection_with_total = self._selected_logs_names.copy()
-        selection_with_total.append("TOTAL")
-        selection = st.selectbox('\nGráfico de pizza: selecione a fonte de dados:', selection_with_total, key=self.__next_selector_key())
-        if selection != "TOTAL":
-            log_selected = self._log_table.get_log_index_by_name(selection)
-        else:
-            log_selected = selection
+        log_selected = self.show_log_sub_selection()
 
         # Chart
         chart_dataframe = self._total_dataframe.copy()
@@ -370,3 +376,32 @@ class Exposition_StatisticsPage(StatisticsPageInterface):
         self.show_column_multi_select_filter(column_name="Ganho mA")
         self.show_column_multi_select_filter(column_name="Indutor")
         self.show_log_and_statistics_table()
+        self.show_3D_bar_chart()
+
+    def show_3D_bar_chart(self) -> None:
+        log_selected = self.show_log_sub_selection()
+        
+        # 3D chart
+        df = self._total_dataframe.copy()
+        df = df.drop(df[df["Exposição"] == "TOTAL"].index)
+        df = df.dropna()
+        df = df.groupby(['mAs', 'kV'], as_index=False).sum()
+        chart_dataframe = df
+        
+        fig = plt.figure()
+        ax = Axes3D(fig)
+        
+        x = chart_dataframe["mAs"]
+        y = chart_dataframe["kV"]
+        z = np.zeros(len(x))
+        
+        dx = np.ones(len(x))
+        dy = np.ones(len(x))
+        dz = chart_dataframe[log_selected]
+        
+        ax.bar3d(x, y, z, dx, dy, dz, shade=True)
+        ax.set_xlabel("mAs")
+        ax.set_ylabel("kV")
+        ax.set_zlabel(log_selected)
+        
+        st.pyplot(fig)
