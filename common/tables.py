@@ -1,3 +1,5 @@
+"""File useful to interact with different tabs/sheets of Excel spreadsheets."""
+
 import pandas as pd
 
 from common.excel_reader import ExcelReader
@@ -164,17 +166,17 @@ class ms_Table(StatisticsTableInterface):
 
 class FailureTable(StatisticsTableInterface):
     def __init__(self) -> None:
-        super().__init__("Falha", "Falha")
+        super().__init__("Falha", "Falha", ["Tradução da Falha"])
 
 
 class WarningTable(StatisticsTableInterface):
     def __init__(self) -> None:
-        super().__init__("Warning", "Warning")
+        super().__init__("Warning", "Warning", ["Tradução da Warning"])
 
 
 class ExpositionTable(StatisticsTableInterface):
     def __init__(self) -> None:
-        super().__init__("Exposição", "Exposição", ["mA", "kV", "ms"])
+        super().__init__("Exposição", "Exposição", ["mA", "kV", "ms", "mAs", "kW", "kJ", "Ganho mA", "Indutor"])
 
 
 class StatisticsTables:
