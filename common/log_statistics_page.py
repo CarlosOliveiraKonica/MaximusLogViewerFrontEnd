@@ -349,10 +349,9 @@ class Exposition_StatisticsPage(StatisticsPageInterface):
         KW_COLUMN,
         KJ_COLUMN,
         MA_GAIN_COLUMN,
-        INDUCTOR_COLUMN,
     ]
-    X_INDEX_DEFAULT = 3
-    Y_INDEX_DEFAULT = 1
+    X_INDEX_DEFAULT = 3 # mAs
+    Y_INDEX_DEFAULT = 1 # kV
 
     def __init__(self, statistics_table: StatisticsTableInterface, log_table: LogLegendTable) -> None:
         super().__init__(statistics_table, log_table)
