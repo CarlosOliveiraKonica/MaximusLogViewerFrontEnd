@@ -18,7 +18,11 @@ st.set_page_config(page_title="MaximusLogViewer", layout="wide")
 
 st.write('# MaximusLogViewer')
 
-uploaded_file = st.file_uploader('Selecione o arquivo EXCEL exportado pelo script do MaximusLogViewer:', type=[".xlsx"])
+log_viewer_script_download = r'https://github.com/CarlosOliveiraKonica/MaximusLogViewer/releases/tag/v0.0.6'
+uploaded_file = st.file_uploader(
+    'Selecione o arquivo EXCEL exportado pelo script do MaximusLogViewer. Caso necessário, baixe-o [aqui](%s).' % log_viewer_script_download,
+    type=[".xlsx"],
+)
 
 if uploaded_file:
     st.write(uploaded_file.name)
@@ -26,7 +30,7 @@ if uploaded_file:
     statistics = StatisticsTables()
     statistics.set_file(uploaded_file)
 
-    log_analysis_tab, statistics_tab = st.tabs(["Análise de Logs", "Estatísticas"])
+    statistics_tab, log_analysis_tab = st.tabs(["Estatísticas", "Análise de Logs"])
     
     with log_analysis_tab:
         logs_page = LogsPage(statistics.log_table, uploaded_file)
