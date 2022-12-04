@@ -417,31 +417,39 @@ class Exposition_StatisticsPage(StatisticsPageInterface):
         )
         return x_selection, y_selection
 
+    def __is_invalid_x_y_selection(self, x_selected: str, y_selected: str) -> bool:
+        return x_selected == y_selected
+        
+
     def show_3D_bar_chart(self) -> None:
         log_selected = self.show_log_sub_selection()
         x_selected, y_selected = self.show_x_y_axes_selection()
         
-        # 3D chart
-        df = self._total_dataframe.copy()
-        df = df.drop(df[df[Exposition_StatisticsPage.EXPOSITION_COLUMN] == "TOTAL"].index)
-        df = df.dropna()
-        df = df.groupby([x_selected, y_selected], as_index=False).sum()
-        chart_dataframe = df
+        if self.__is_invalid_x_y_selection(x_selected, y_selected):
+            st.write("Seleção inválida. Por favor, selecione diferentes valores para os Eixos X e Y.")
         
-        fig = plt.figure()
-        ax = Axes3D(fig)
-        
-        x = chart_dataframe[x_selected]
-        y = chart_dataframe[y_selected]
-        z = np.zeros(len(x))
-        
-        dx = np.ones(len(x))
-        dy = np.ones(len(x))
-        dz = chart_dataframe[log_selected]
-        
-        ax.bar3d(x, y, z, dx, dy, dz, shade=True)
-        ax.set_xlabel(x_selected)
-        ax.set_ylabel(y_selected)
-        ax.set_zlabel(log_selected)
-        
-        st.pyplot(fig)
+        else:
+            # 3D chart
+            df = self._total_dataframe.copy()
+            df = df.drop(df[df[Exposition_StatisticsPage.EXPOSITION_COLUMN] == "TOTAL"].index)
+            df = df.dropna()
+            df = df.groupby([x_selected, y_selected], as_index=False).sum()
+            chart_dataframe = df
+            
+            fig = plt.figure()
+            ax = Axes3D(fig)
+            
+            x = chart_dataframe[x_selected]
+            y = chart_dataframe[y_selected]
+            z = np.zeros(len(x))
+            
+            dx = np.ones(len(x))
+            dy = np.ones(len(x))
+            dz = chart_dataframe[log_selected]
+            
+            ax.bar3d(x, y, z, dx, dy, dz, shade=True)
+            ax.set_xlabel(x_selected)
+            ax.set_ylabel(y_selected)
+            ax.set_zlabel(log_selected)
+            
+            st.pyplot(fig)
